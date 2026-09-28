@@ -1,72 +1,262 @@
+README.md
 # UV Mapping Dinâmico e Procedural
-
-Implementação em C++ utilizando Vulkan para demonstração de técnicas de UV Mapping dinâmico e geração procedural de padrões em tempo real.
 
 Projeto desenvolvido para a disciplina de **Computação Gráfica e Processamento de Imagens** da Universidade Católica de Santos.
 
----
-
-## Sobre o projeto
-
-O projeto apresenta uma implementação de uma pipeline gráfica utilizando a API Vulkan, com foco na aplicação de coordenadas UV de forma dinâmica e na geração de padrões procedurais diretamente nos shaders.
-
-A movimentação das coordenadas UV é controlada por um parâmetro de tempo enviado à GPU por meio de um Uniform Buffer Object (UBO). O fragment shader utiliza funções matemáticas para gerar o padrão visual e atualizar sua aparência em tempo real.
-
-A aplicação abre uma janela utilizando GLFW e realiza o processo completo de renderização através do Vulkan.
+Nesta etapa foi implementada a infraestrutura básica de renderização utilizando **Vulkan**, incluindo criação da instância, dispositivo lógico, swapchain, pipeline gráfico, buffers, sincronização e integração dos shaders em GLSL compilados para SPIR-V.
 
 ---
 
-## Funcionalidades
+## 1. Requisitos
 
-- Inicialização da API Vulkan
-- Criação de instância Vulkan
-- Seleção da GPU
-- Criação do dispositivo lógico
-- Criação das filas de processamento
-- Criação da Surface
-- Swapchain
-- Image Views
-- Render Pass
-- Framebuffers
-- Graphics Pipeline
-- Command Pool e Command Buffers
-- Uniform Buffer Object (UBO)
-- Descriptor Sets
-- Sincronização com semáforos e fences
-- Vertex Shader e Fragment Shader em GLSL
-- Compilação dos shaders para SPIR-V
-- UV Mapping
-- Deslocamento dinâmico das coordenadas UV
-- Geração procedural de padrões
-- Animação em tempo real
-
----
-
-## Tecnologias utilizadas
+Para compilar e executar o projeto são necessários:
 
 - C++17
-- Vulkan
-- GLSL
-- SPIR-V
+- Vulkan SDK
 - GLFW
 - CMake
-- MoltenVK / Vulkan SDK
+- `glslc`
+
+### Ambiente utilizado
+
+- Sistema operacional: macOS
+- Arquitetura: ARM64
+- Compilador: Apple Clang 21.0.0
+- Vulkan: Vulkan SDK 1.4.357
+- Driver Vulkan: MoltenVK 1.4.2
+- GLFW
+- CMake
+
+No macOS, o Vulkan é executado através do **MoltenVK**, utilizando a infraestrutura gráfica do sistema.
 
 ---
 
-## Estrutura do projeto
+## 2. Estrutura do projeto
 
 ```text
-.
+entrega_cod_uv/
 ├── CMakeLists.txt
 ├── README.md
+│
 ├── src/
-│   └── main.cpp
+│   ├── main.cpp
+│   ├── VulkanApp.hpp
+│   └── VulkanApp.cpp
 │
 ├── shaders/
 │   ├── uv_mapping.vert
-│   ├── uv_mapping.vert.spv
 │   ├── uv_mapping.frag
+│   ├── uv_mapping.vert.spv
 │   └── uv_mapping.frag.spv
 │
-└── build/
+└── evidencias/
+    ├── screenshot.png
+    └── video.mp4
+
+A pasta build/ é criada durante a compilação e não faz parte do código-fonte necessário para a reprodução do projeto.
+
+## 3. Compilação dos shaders
+
+Os shaders são escritos em GLSL e compilados para SPIR-V utilizando o glslc.
+
+Vertex Shader
+glslc shaders/uv_mapping.vert -o shaders/uv_mapping.vert.spv
+Fragment Shader
+glslc shaders/uv_mapping.frag -o shaders/uv_mapping.frag.spv
+
+Os arquivos .spv gerados são carregados pela aplicação Vulkan durante a criação do pipeline gráfico.
+
+## 4. Compilação do projeto
+
+Na pasta raiz do projeto:
+
+cmake -S . -B build
+
+Depois:
+
+cmake --build build -j
+
+O executável será criado em:
+
+build/UVMappingEntrega4
+
+## 5. Execução
+
+Após a compilação:
+
+./build/UVMappingEntrega4
+
+A aplicação abre uma janela e realiza a renderização utilizando Vulkan.
+
+## 6. Principais arquivos
+src/main.cpp
+
+Responsável por iniciar a aplicação e tratar exceções.
+
+src/VulkanApp.hpp
+
+Contém a declaração da classe VulkanApp, estruturas utilizadas pela aplicação e os recursos Vulkan utilizados durante a renderização.
+
+src/VulkanApp.cpp
+
+Contém a implementação da aplicação Vulkan, incluindo:
+
+criação da instância;
+criação da surface;
+seleção da GPU;
+criação do dispositivo lógico;
+criação das filas;
+criação da swapchain;
+criação das image views;
+criação do render pass;
+criação do descriptor set;
+criação do pipeline gráfico;
+criação dos framebuffers;
+criação dos command buffers;
+criação dos buffers;
+sincronização;
+loop principal;
+renderização;
+limpeza dos recursos.
+shaders/uv_mapping.vert
+
+Vertex Shader utilizado pelo pipeline gráfico.
+
+shaders/uv_mapping.frag
+
+Fragment Shader responsável pelo cálculo do padrão visual.
+
+Arquivos .spv
+
+Versões compiladas dos shaders utilizadas pelo Vulkan.
+
+## 7. Integração dos shaders
+
+Os shaders desenvolvidos anteriormente foram integrados ao pipeline Vulkan desta entrega.
+
+O processo utilizado é:
+
+GLSL
+ │
+ ├── uv_mapping.vert
+ └── uv_mapping.frag
+        │
+        ▼
+      glslc
+        │
+        ▼
+      SPIR-V
+        │
+        ├── uv_mapping.vert.spv
+        └── uv_mapping.frag.spv
+        │
+        ▼
+VkShaderModule
+        │
+        ▼
+Graphics Pipeline
+
+A aplicação lê os arquivos SPIR-V e cria os respectivos VkShaderModule.
+
+Os shaders são associados aos estágios de Vertex Shader e Fragment Shader durante a criação do pipeline gráfico.
+
+## 8. Uniform Buffer e tempo
+
+A aplicação utiliza um Uniform Buffer Object (UBO) para enviar o valor de tempo para a GPU.
+
+O valor é atualizado durante a execução da aplicação e disponibilizado ao shader através de um descriptor set.
+
+O fragment shader utiliza esse valor para alterar o padrão visual ao longo do tempo.
+
+## 9. Renderização
+
+A aplicação possui uma pipeline Vulkan completa para realizar a renderização.
+
+O fluxo principal é:
+
+Aplicação
+   │
+   ▼
+Vulkan Instance
+   │
+   ▼
+Physical Device
+   │
+   ▼
+Logical Device
+   │
+   ▼
+Swapchain
+   │
+   ▼
+Render Pass
+   │
+   ▼
+Graphics Pipeline
+   │
+   ├── Vertex Shader
+   │
+   └── Fragment Shader
+   │
+   ▼
+Command Buffer
+   │
+   ▼
+Graphics Queue
+   │
+   ▼
+Swapchain
+   │
+   ▼
+Janela
+
+Nesta etapa é realizada uma renderização simples para validar o funcionamento da infraestrutura Vulkan.
+
+## 10. Funcionalidades implementadas
+
+Nesta entrega estão funcionando:
+
+inicialização da API Vulkan;
+criação da Vulkan Instance;
+utilização da validation layer;
+seleção da GPU;
+criação do dispositivo lógico;
+criação das filas gráfica e de apresentação;
+criação da Surface;
+criação da Swapchain;
+criação das Image Views;
+criação do Render Pass;
+criação do Framebuffer;
+criação do Graphics Pipeline;
+criação do Command Pool;
+criação dos Command Buffers;
+criação dos Vertex Buffers;
+criação dos Uniform Buffers;
+criação dos Descriptor Sets;
+criação de semáforos e fences;
+carregamento de shaders SPIR-V;
+criação dos Shader Modules;
+execução da renderização na tela;
+atualização do tempo utilizado pelos shaders
+
+## 11. Funcionalidades futuras
+
+A implementação desta etapa tem como objetivo principal estabelecer a infraestrutura Vulkan e integrar os shaders.
+
+Nas próximas etapas poderão ser desenvolvidas e aprimoradas funcionalidades como:
+
+aplicação do mapeamento UV em geometrias mais complexas;
+utilização de texturas;
+evolução do padrão procedural;
+aplicação do efeito em diferentes objetos;
+melhorias na animação das coordenadas UV;
+aprimoramentos visuais da técnica
+
+## 12. Evidências
+
+A pasta evidencias/ contém registros da execução da aplicação.
+
+evidencias/
+├── screenshot.png
+
+O screenshot demonstra a aplicação em execução

@@ -10,10 +10,11 @@ find_package(glfw3 REQUIRED)
 
 add_executable(UVMappingEntrega4
     src/main.cpp
+    src/VulkanApp.cpp
 )
 
 target_link_libraries(UVMappingEntrega4
     PRIVATE
-    Vulkan::Vulkan
-    glfw
+        Vulkan::Vulkan
+        glfw
 )

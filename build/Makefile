@@ -129,6 +129,30 @@ UVMappingEntrega4/fast:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/UVMappingEntrega4.dir/build.make CMakeFiles/UVMappingEntrega4.dir/build
 .PHONY : UVMappingEntrega4/fast
 
+src/VulkanApp.o: src/VulkanApp.cpp.o
+.PHONY : src/VulkanApp.o
+
+# target to build an object file
+src/VulkanApp.cpp.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/UVMappingEntrega4.dir/build.make CMakeFiles/UVMappingEntrega4.dir/src/VulkanApp.cpp.o
+.PHONY : src/VulkanApp.cpp.o
+
+src/VulkanApp.i: src/VulkanApp.cpp.i
+.PHONY : src/VulkanApp.i
+
+# target to preprocess a source file
+src/VulkanApp.cpp.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/UVMappingEntrega4.dir/build.make CMakeFiles/UVMappingEntrega4.dir/src/VulkanApp.cpp.i
+.PHONY : src/VulkanApp.cpp.i
+
+src/VulkanApp.s: src/VulkanApp.cpp.s
+.PHONY : src/VulkanApp.s
+
+# target to generate assembly for a file
+src/VulkanApp.cpp.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/UVMappingEntrega4.dir/build.make CMakeFiles/UVMappingEntrega4.dir/src/VulkanApp.cpp.s
+.PHONY : src/VulkanApp.cpp.s
+
 src/main.o: src/main.cpp.o
 .PHONY : src/main.o
 
@@ -162,6 +186,9 @@ help:
 	@echo "... edit_cache"
 	@echo "... rebuild_cache"
 	@echo "... UVMappingEntrega4"
+	@echo "... src/VulkanApp.o"
+	@echo "... src/VulkanApp.i"
+	@echo "... src/VulkanApp.s"
 	@echo "... src/main.o"
 	@echo "... src/main.i"
 	@echo "... src/main.s"

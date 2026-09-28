@@ -8,6 +8,7 @@ set(CMAKE_DEPENDS_LANGUAGES
 
 # The set of dependency files which are needed:
 set(CMAKE_DEPENDS_DEPENDENCY_FILES
+  "/Users/felipe1501/Documents/faculdade_8sem/COMPUTACAO_GRAFICA_E_PROCESSAMENTO_DE IMAGENS/entrega_cod_uv/src/VulkanApp.cpp" "CMakeFiles/UVMappingEntrega4.dir/src/VulkanApp.cpp.o" "gcc" "CMakeFiles/UVMappingEntrega4.dir/src/VulkanApp.cpp.o.d"
   "/Users/felipe1501/Documents/faculdade_8sem/COMPUTACAO_GRAFICA_E_PROCESSAMENTO_DE IMAGENS/entrega_cod_uv/src/main.cpp" "CMakeFiles/UVMappingEntrega4.dir/src/main.cpp.o" "gcc" "CMakeFiles/UVMappingEntrega4.dir/src/main.cpp.o.d"
   )
 
