@@ -298,7 +298,7 @@ A pasta `evidencias/` contém registros da execução da aplicação.
 
 ```text
 evidencias/
-└── screenshot.png
+└── resultado.png
 ```
 
-O screenshot demonstra a aplicação em execução e a renderização realizada utilizando Vulkan.
+O resultado demonstra a aplicação em execução e a renderização realizada utilizando Vulkan.
