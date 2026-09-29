@@ -44,8 +44,11 @@ struct SwapChainSupportDetails
 // O padding mantém o tamanho do bloco compatível com o alinhamento esperado.
 struct UniformBufferObject
 {
+    float model[16];
+    float view[16];
+    float projection[16];
+
     float time;
-    float padding[3];
 };
 
 class VulkanApp
