@@ -55,3 +55,34 @@ target_compile_definitions(UVMappingEntrega4
     PRIVATE
         GLM_FORCE_DEPTH_ZERO_TO_ONE
 )
+
+# Compila os shaders GLSL para SPIR-V a cada build, se o glslc estiver
+# disponível. Os .spv ficam em shaders/, onde a aplicação os procura.
+# Sem glslc, a aplicação usa os .spv já versionados no repositório.
+if(Vulkan_GLSLC_EXECUTABLE)
+    set(SHADER_SOURCES
+        ${CMAKE_SOURCE_DIR}/shaders/uv_mapping.vert
+        ${CMAKE_SOURCE_DIR}/shaders/uv_mapping.frag
+    )
+
+    set(SHADER_BINARIES "")
+
+    foreach(SHADER ${SHADER_SOURCES})
+        set(SPIRV "${SHADER}.spv")
+
+        add_custom_command(
+            OUTPUT ${SPIRV}
+            COMMAND ${Vulkan_GLSLC_EXECUTABLE} ${SHADER} -o ${SPIRV}
+            DEPENDS ${SHADER}
+            COMMENT "Compilando shader ${SHADER}"
+            VERBATIM
+        )
+
+        list(APPEND SHADER_BINARIES ${SPIRV})
+    endforeach()
+
+    add_custom_target(shaders DEPENDS ${SHADER_BINARIES})
+    add_dependencies(UVMappingEntrega4 shaders)
+else()
+    message(STATUS "glslc nao encontrado: usando os .spv ja compilados em shaders/")
+endif()
