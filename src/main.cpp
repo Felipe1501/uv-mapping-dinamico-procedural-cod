@@ -4,9 +4,13 @@
 #include <exception>
 #include <iostream>
 
-int main()
+int main(int argc, char** argv)
 {
-    VulkanApp app;
+    // Outro modelo .glb ou .gltf pode ser passado como argumento.
+    const std::string modelPath =
+        (argc > 1) ? argv[1] : "assets/models/Duck.glb";
+
+    VulkanApp app(modelPath);
 
     try
     {
