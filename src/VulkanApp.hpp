@@ -1,9 +1,13 @@
 #pragma once
 
+#include "ModelLoader.hpp"
+
 #include <vulkan/vulkan.h>
 #include <GLFW/glfw3.h>
 
-#include <array>
+#include <glm/glm.hpp>
+
+#include <cstddef>
 #include <cstdint>
 #include <optional>
 #include <string>
@@ -40,39 +44,60 @@ struct SwapChainSupportDetails
     std::vector<VkPresentModeKHR> presentModes;
 };
 
-// Dados enviados ao shader.
+// Modos de visualização, trocados pelas teclas 1 a 5.
+enum RenderMode : int32_t
+{
+    MODE_TEXTURE = 1,       // textura original aplicada pelas UVs do modelo
+    MODE_DYNAMIC_UV = 2,    // UVs animadas antes de amostrar a textura
+    MODE_PROCEDURAL = 3,    // padrão procedural calculado a partir das UVs
+    MODE_BLEND = 4,         // textura com UV dinâmica + padrão procedural
+    MODE_UV_GRID = 5        // grade de depuração da parametrização UV
+};
+
+// Dados enviados aos shaders.
+// O layout precisa espelhar o bloco "Parameters" dos shaders em std140:
+// as três mat4 ocupam os primeiros 192 bytes, "time" fica no offset 192
+// e "mode" no offset 196. Os static_assert abaixo garantem isso.
 // O padding mantém o tamanho do bloco compatível com o alinhamento esperado.
 struct UniformBufferObject
 {
-    float model[16];
-    float view[16];
-    float projection[16];
-
+    glm::mat4 model;
+    glm::mat4 view;
+    glm::mat4 projection;
     float time;
+    int32_t mode;
+    float padding[2];
 };
+
+static_assert(offsetof(UniformBufferObject, view) == 64, "layout std140");
+static_assert(offsetof(UniformBufferObject, projection) == 128, "layout std140");
+static_assert(offsetof(UniformBufferObject, time) == 192, "layout std140");
+static_assert(offsetof(UniformBufferObject, mode) == 196, "layout std140");
 
 class VulkanApp
 {
 public:
+    explicit VulkanApp(std::string modelPath);
+
     void run();
 
 private:
-    struct Vertex
-    {
-        float position[3];
-        float normal[3];
-        float uv[2];
-    };
+    std::string modelPath;
 
-    static const std::array<Vertex, 3> vertices;
+    MeshData mesh;
+    uint32_t indexCount = 0;
 
     GLFWwindow* window = nullptr;
 
     VkInstance instance = VK_NULL_HANDLE;
     VkSurfaceKHR surface = VK_NULL_HANDLE;
 
+    bool validationEnabled = false;
+
     VkPhysicalDevice physicalDevice = VK_NULL_HANDLE;
     VkDevice device = VK_NULL_HANDLE;
+
+    bool anisotropySupported = false;
 
     VkQueue graphicsQueue = VK_NULL_HANDLE;
     VkQueue presentQueue = VK_NULL_HANDLE;
@@ -84,6 +109,11 @@ private:
 
     VkFormat swapChainImageFormat{};
     VkExtent2D swapChainExtent{};
+
+    VkImage depthImage = VK_NULL_HANDLE;
+    VkDeviceMemory depthImageMemory = VK_NULL_HANDLE;
+    VkImageView depthImageView = VK_NULL_HANDLE;
+    VkFormat depthFormat{};
 
     VkRenderPass renderPass = VK_NULL_HANDLE;
 
@@ -104,6 +134,14 @@ private:
     VkBuffer vertexBuffer = VK_NULL_HANDLE;
     VkDeviceMemory vertexBufferMemory = VK_NULL_HANDLE;
 
+    VkBuffer indexBuffer = VK_NULL_HANDLE;
+    VkDeviceMemory indexBufferMemory = VK_NULL_HANDLE;
+
+    VkImage textureImage = VK_NULL_HANDLE;
+    VkDeviceMemory textureImageMemory = VK_NULL_HANDLE;
+    VkImageView textureImageView = VK_NULL_HANDLE;
+    VkSampler textureSampler = VK_NULL_HANDLE;
+
     std::vector<VkBuffer> uniformBuffers;
     std::vector<VkDeviceMemory> uniformBuffersMemory;
     std::vector<void*> uniformBuffersMapped;
@@ -116,9 +154,27 @@ private:
 
     size_t currentFrame = 0;
 
+    // Estado controlado pelo teclado.
+    int32_t renderMode = MODE_BLEND;
+    bool rotating = true;
+    float rotationAngle = 0.0f;
+    float lastFrameTime = 0.0f;
+
 private:
     void initWindow();
     void initVulkan();
+
+    static void keyCallback(
+        GLFWwindow* window,
+        int key,
+        int scancode,
+        int action,
+        int mods
+    );
+
+    void updateWindowTitle();
+
+    bool checkValidationLayerSupport();
 
     void createInstance();
     void createSurface();
@@ -156,6 +212,25 @@ private:
 
     void createSwapChain();
     void createImageViews();
+
+    VkImageView createImageView(
+        VkImage image,
+        VkFormat format,
+        VkImageAspectFlags aspectFlags
+    );
+
+    void createImage(
+        uint32_t width,
+        uint32_t height,
+        VkFormat format,
+        VkImageUsageFlags usage,
+        VkImage& image,
+        VkDeviceMemory& memory
+    );
+
+    VkFormat findDepthFormat();
+    void createDepthResources();
+
     void createRenderPass();
     void createDescriptorSetLayout();
 
@@ -180,7 +255,47 @@ private:
         VkDeviceMemory& memory
     );
 
+    VkCommandBuffer beginSingleTimeCommands();
+
+    void endSingleTimeCommands(
+        VkCommandBuffer commandBuffer
+    );
+
+    void copyBuffer(
+        VkBuffer source,
+        VkBuffer destination,
+        VkDeviceSize size
+    );
+
+    void uploadToDeviceLocalBuffer(
+        const void* data,
+        VkDeviceSize size,
+        VkBufferUsageFlags usage,
+        VkBuffer& buffer,
+        VkDeviceMemory& memory
+    );
+
+    void transitionImageLayout(
+        VkImage image,
+        VkImageLayout oldLayout,
+        VkImageLayout newLayout
+    );
+
+    void copyBufferToImage(
+        VkBuffer buffer,
+        VkImage image,
+        uint32_t width,
+        uint32_t height
+    );
+
+    void loadMesh();
     void createVertexBuffer();
+    void createIndexBuffer();
+
+    void createTextureImage();
+    void createTextureImageView();
+    void createTextureSampler();
+
     void createUniformBuffers();
     void createDescriptorPool();
     void createDescriptorSets();

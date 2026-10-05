@@ -1,26 +1,35 @@
 #version 450
 
+layout(set = 0, binding = 0) uniform Parameters
+{
+    mat4 model;
+    mat4 view;
+    mat4 projection;
+    float time;
+    int mode;
+} params;
+
+// Atributos lidos do modelo glTF (ver ModelLoader.cpp)
+layout(location = 0) in vec3 inPosition;
+layout(location = 1) in vec3 inNormal;
+layout(location = 2) in vec2 inUV;
+
 layout(location = 0) out vec2 fragUV;
+layout(location = 1) out vec3 fragNormal;
 
 void main()
 {
-    vec2 positions[3] = vec2[](
-        vec2(-0.8, -0.8),
-        vec2( 0.8, -0.8),
-        vec2( 0.0,  0.8)
-    );
+    gl_Position =
+        params.projection *
+        params.view *
+        params.model *
+        vec4(inPosition, 1.0);
 
-    vec2 uvs[3] = vec2[](
-        vec2(0.0, 0.0),
-        vec2(1.0, 0.0),
-        vec2(0.5, 1.0)
-    );
+    // A UV de cada vértice vem do arquivo do modelo e é interpolada
+    // pelo rasterizador: cada pixel da superfície recebe a sua coordenada
+    // na textura. Isso é o mapeamento UV.
+    fragUV = inUV;
 
-    gl_Position = vec4(
-        positions[gl_VertexIndex],
-        0.0,
-        1.0
-    );
-
-    fragUV = uvs[gl_VertexIndex];
+    // A matriz model é só rotação, então serve também para as normais.
+    fragNormal = mat3(params.model) * inNormal;
 }
